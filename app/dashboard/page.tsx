@@ -1,40 +1,19 @@
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "./actions";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-
-type VentaPorCliente = {
-  cliente_id: string | number;
-  nombre_empresa: string | null;
-  grupo_nombre: string | null;
-  rubro: string | null;
-  total_pedidos: number | null;
-  ingreso_bruto_total: number | null;
-  ingreso_neto_total: number | null;
-  ultima_fecha_entrega: string | null;
-};
-
-const currencyFormatter = new Intl.NumberFormat("es-CL", {
-  style: "currency",
-  currency: "CLP",
-  maximumFractionDigits: 0,
-});
-
-function formatCurrency(value: number | null) {
-  return value == null ? "—" : currencyFormatter.format(value);
-}
-
-function formatDate(value: string | null) {
-  if (!value) return "—";
-  return new Date(value).toLocaleDateString("es-CL");
-}
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { StatTiles } from "./_components/stat-tiles";
+import { TopClientesChart } from "./_components/top-clientes-chart";
+import { ClientesPanel } from "./_components/clientes-panel";
+import { FechasClaveList } from "./_components/fechas-clave-list";
+import { AlertasList } from "./_components/alertas-list";
+import type {
+  VentaPorCliente,
+  VentaPorGrupo,
+  FechaClave,
+  ClienteSinCompraReciente,
+} from "./_components/types";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -43,23 +22,73 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data, error } = await supabase
-    .from("vista_ventas_por_cliente")
-    .select(
-      "cliente_id, nombre_empresa, grupo_nombre, rubro, total_pedidos, ingreso_bruto_total, ingreso_neto_total, ultima_fecha_entrega",
-    )
-    .order("ingreso_bruto_total", { ascending: false });
+  const [clientesRes, gruposRes, fechasRes, alertasRes] = await Promise.all([
+    supabase
+      .from("vista_ventas_por_cliente")
+      .select(
+        "cliente_id, nombre_empresa, grupo_id, grupo_nombre, rubro, total_pedidos, ingreso_bruto_total, ingreso_neto_total, ultima_fecha_entrega",
+      )
+      .order("ingreso_bruto_total", { ascending: false }),
+    supabase
+      .from("vista_ventas_por_grupo")
+      .select(
+        "grupo_id, grupo_nombre, total_subempresas, total_pedidos, ingreso_bruto_total, ingreso_neto_total, ultima_fecha_entrega",
+      )
+      .order("ingreso_bruto_total", { ascending: false }),
+    supabase
+      .from("vista_proximas_fechas_clave")
+      .select(
+        "fecha_clave_id, cliente_id, nombre_empresa, grupo_nombre, nombre_fecha, mes, dia, origen, proxima_fecha, ingreso_bruto_total, ultima_fecha_entrega",
+      )
+      .order("proxima_fecha", { ascending: true }),
+    supabase
+      .from("vista_clientes_sin_compra_reciente")
+      .select("cliente_id, nombre_empresa, grupo_nombre, ultima_fecha_entrega, ingreso_bruto_total")
+      .order("ultima_fecha_entrega", { ascending: true }),
+  ]);
 
-  const ventas = (data ?? []) as VentaPorCliente[];
+  const clientes = (clientesRes.data ?? []) as VentaPorCliente[];
+  const grupos = (gruposRes.data ?? []) as VentaPorGrupo[];
+  const fechas = (fechasRes.data ?? []) as FechaClave[];
+  const alertas = (alertasRes.data ?? []) as ClienteSinCompraReciente[];
+
+  const queryErrors = [
+    clientesRes.error && `vista_ventas_por_cliente: ${clientesRes.error.message}`,
+    gruposRes.error && `vista_ventas_por_grupo: ${gruposRes.error.message}`,
+    fechasRes.error && `vista_proximas_fechas_clave: ${fechasRes.error.message}`,
+    alertasRes.error &&
+      `vista_clientes_sin_compra_reciente: ${alertasRes.error.message}`,
+  ].filter(Boolean) as string[];
+
+  const totalClientesActivos = clientes.length;
+  const ingresoBrutoTotal = clientes.reduce(
+    (sum, c) => sum + (c.ingreso_bruto_total ?? 0),
+    0,
+  );
+  const clienteTop = clientes.reduce<{ nombre: string; ingreso: number } | null>(
+    (top, c) => {
+      const ingreso = c.ingreso_bruto_total ?? 0;
+      if (!top || ingreso > top.ingreso) {
+        return { nombre: c.nombre_empresa ?? "—", ingreso };
+      }
+      return top;
+    },
+    null,
+  );
+  const ticketPromedio =
+    totalClientesActivos > 0 ? ingresoBrutoTotal / totalClientesActivos : 0;
+
+  const top10 = clientes.slice(0, 10).map((c) => ({
+    nombre: c.nombre_empresa ?? "—",
+    ingreso: c.ingreso_bruto_total ?? 0,
+  }));
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6 p-6">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Ventas por cliente</h1>
-          <p className="text-sm text-muted-foreground">
-            Sesión: {user?.email}
-          </p>
+          <h1 className="text-2xl font-semibold">Dashboard Traukorp</h1>
+          <p className="text-sm text-muted-foreground">Sesión: {user?.email}</p>
         </div>
         <form action={logout}>
           <Button type="submit" variant="outline">
@@ -68,53 +97,49 @@ export default async function DashboardPage() {
         </form>
       </header>
 
-      {error && (
-        <p className="text-sm text-destructive">
-          Error al consultar vista_ventas_por_cliente: {error.message}
-        </p>
+      {queryErrors.length > 0 && (
+        <div className="rounded-md border border-destructive/50 bg-destructive/5 p-3 text-sm text-destructive">
+          {queryErrors.map((msg) => (
+            <p key={msg}>{msg}</p>
+          ))}
+        </div>
       )}
 
-      <div className="overflow-x-auto rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Empresa</TableHead>
-              <TableHead>Grupo</TableHead>
-              <TableHead>Rubro</TableHead>
-              <TableHead className="text-right">Pedidos</TableHead>
-              <TableHead className="text-right">Ingreso bruto</TableHead>
-              <TableHead className="text-right">Ingreso neto</TableHead>
-              <TableHead>Última entrega</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {ventas.length === 0 && !error && (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
-                  Sin datos.
-                </TableCell>
-              </TableRow>
-            )}
-            {ventas.map((venta) => (
-              <TableRow key={venta.cliente_id}>
-                <TableCell>{venta.nombre_empresa ?? "—"}</TableCell>
-                <TableCell>{venta.grupo_nombre ?? "—"}</TableCell>
-                <TableCell>{venta.rubro ?? "—"}</TableCell>
-                <TableCell className="text-right">
-                  {venta.total_pedidos ?? "—"}
-                </TableCell>
-                <TableCell className="text-right">
-                  {formatCurrency(venta.ingreso_bruto_total)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {formatCurrency(venta.ingreso_neto_total)}
-                </TableCell>
-                <TableCell>{formatDate(venta.ultima_fecha_entrega)}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <StatTiles
+        totalClientesActivos={totalClientesActivos}
+        ingresoBrutoTotal={ingresoBrutoTotal}
+        clienteTop={clienteTop}
+        ticketPromedio={ticketPromedio}
+      />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Top 10 clientes por ingreso bruto</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TopClientesChart data={top10} />
+        </CardContent>
+      </Card>
+
+      <Tabs defaultValue="clientes">
+        <TabsList>
+          <TabsTrigger value="clientes">Clientes</TabsTrigger>
+          <TabsTrigger value="fechas">Fechas clave</TabsTrigger>
+          <TabsTrigger value="alertas">Alertas</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="clientes">
+          <ClientesPanel clientes={clientes} grupos={grupos} />
+        </TabsContent>
+
+        <TabsContent value="fechas">
+          <FechasClaveList fechas={fechas} />
+        </TabsContent>
+
+        <TabsContent value="alertas">
+          <AlertasList clientes={alertas} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
