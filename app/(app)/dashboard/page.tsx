@@ -1,6 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { logout } from "./actions";
-import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatTiles } from "./_components/stat-tiles";
@@ -17,10 +15,6 @@ import type {
 
 export default async function DashboardPage() {
   const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   const [clientesRes, gruposRes, fechasRes, alertasRes] = await Promise.all([
     supabase
@@ -84,18 +78,13 @@ export default async function DashboardPage() {
   }));
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-6 p-6">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Dashboard Traukorp</h1>
-          <p className="text-sm text-muted-foreground">Sesión: {user?.email}</p>
-        </div>
-        <form action={logout}>
-          <Button type="submit" variant="outline">
-            Cerrar sesión
-          </Button>
-        </form>
-      </header>
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-2xl font-semibold">Dashboard Traukorp</h1>
+        <p className="text-sm text-muted-foreground">
+          Resumen general de ventas y clientes.
+        </p>
+      </div>
 
       {queryErrors.length > 0 && (
         <div className="rounded-md border border-destructive/50 bg-destructive/5 p-3 text-sm text-destructive">
