@@ -139,3 +139,12 @@ export const fechaClaveClienteSchema = z.object({
   activo: z.boolean(),
 });
 export type FechaClaveClienteFormValues = z.infer<typeof fechaClaveClienteSchema>;
+
+export const fechaClaveClienteBulkSchema = z.object({
+  nombre_fecha: z.string().trim().min(1, "El nombre de la fecha es obligatorio"),
+  mes: zNullableInt(1, 12),
+  dia: zNullableInt(1, 31),
+  fecha_general_id: z.string().uuid().nullable(),
+  clienteIds: z.array(z.string().uuid()).min(1, "Selecciona al menos un cliente"),
+});
+export type FechaClaveClienteBulkValues = z.infer<typeof fechaClaveClienteBulkSchema>;

@@ -84,7 +84,7 @@ export function ClientesTable({ rows, grupos }: ClientesTableProps) {
                   {formatCurrency(row.ingreso_bruto_total)}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={row.activo ? "outline" : "secondary"}>
+                  <Badge variant={row.activo ? "success" : "secondary"}>
                     {row.activo ? "Activo" : "Inactivo"}
                   </Badge>
                 </TableCell>

@@ -4,12 +4,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatTiles } from "./_components/stat-tiles";
 import { TopClientesChart } from "./_components/top-clientes-chart";
 import { ClientesPanel } from "./_components/clientes-panel";
-import { FechasClaveList } from "./_components/fechas-clave-list";
+import { FechasClaveCards } from "./_components/fechas-clave-cards";
 import { AlertasList } from "./_components/alertas-list";
+import { groupFechasClaveCliente, type FechaClaveClienteConNombre } from "@/lib/group-fechas";
 import type {
   VentaPorCliente,
   VentaPorGrupo,
-  FechaClave,
   ClienteSinCompraReciente,
 } from "./_components/types";
 
@@ -43,8 +43,27 @@ export default async function DashboardPage() {
 
   const clientes = (clientesRes.data ?? []) as VentaPorCliente[];
   const grupos = (gruposRes.data ?? []) as VentaPorGrupo[];
-  const fechas = (fechasRes.data ?? []) as FechaClave[];
   const alertas = (alertasRes.data ?? []) as ClienteSinCompraReciente[];
+
+  const filasFechasClave: FechaClaveClienteConNombre[] = (
+    (fechasRes.data ?? []) as {
+      fecha_clave_id: string;
+      cliente_id: string;
+      nombre_fecha: string;
+      mes: number | null;
+      dia: number | null;
+      nombre_empresa: string | null;
+    }[]
+  ).map((f) => ({
+    id: f.fecha_clave_id,
+    cliente_id: f.cliente_id,
+    nombre_fecha: f.nombre_fecha,
+    mes: f.mes,
+    dia: f.dia,
+    fecha_general_id: null,
+    nombre_empresa: f.nombre_empresa ?? "—",
+  }));
+  const gruposFechasClave = groupFechasClaveCliente(filasFechasClave);
 
   const queryErrors = [
     clientesRes.error && `vista_ventas_por_cliente: ${clientesRes.error.message}`,
@@ -122,7 +141,7 @@ export default async function DashboardPage() {
         </TabsContent>
 
         <TabsContent value="fechas">
-          <FechasClaveList fechas={fechas} />
+          <FechasClaveCards groups={gruposFechasClave} />
         </TabsContent>
 
         <TabsContent value="alertas">

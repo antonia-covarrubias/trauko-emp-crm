@@ -94,7 +94,7 @@ export function GrupoDetalle({ grupo, clientes }: GrupoDetalleProps) {
                     </TableCell>
                     <TableCell>{c.rubro ?? "—"}</TableCell>
                     <TableCell>
-                      <Badge variant={c.activo ? "outline" : "secondary"}>
+                      <Badge variant={c.activo ? "success" : "secondary"}>
                         {c.activo ? "Activo" : "Inactivo"}
                       </Badge>
                     </TableCell>

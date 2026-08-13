@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatCurrency, formatDate } from "@/lib/format";
+import { estadoPedidoVariant, formatCurrency, formatDate } from "@/lib/format";
 import { DeletePedidoButton } from "./_components/delete-pedido-button";
 import type { PedidoItem } from "@/lib/types";
 
@@ -67,7 +67,14 @@ export default async function PedidoDetallePage({
     { label: "Cliente", value: pedido.clientes?.nombre_empresa ?? "—" },
     { label: "Ejecutivo", value: pedido.ejecutivos?.nombre ?? "Sin asignar" },
     { label: "N° pedido", value: pedido.numero_pedido ?? "—" },
-    { label: "Estado", value: pedido.estado ?? "—" },
+    {
+      label: "Estado",
+      value: pedido.estado ? (
+        <Badge variant={estadoPedidoVariant(pedido.estado)}>{pedido.estado}</Badge>
+      ) : (
+        "—"
+      ),
+    },
     { label: "Fecha entrega", value: formatDate(pedido.fecha_entrega) },
     { label: "Cómo llegaron", value: pedido.como_llegaron ?? "—" },
     { label: "N° OC", value: pedido.nro_oc ?? "—" },
@@ -89,7 +96,11 @@ export default async function PedidoDetallePage({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" render={<Link href={`/ventas/${pedido.id}/editar`} />}>
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={<Link href={`/ventas/${pedido.id}/editar`} />}
+          >
             <Pencil />
             Editar
           </Button>
@@ -110,13 +121,13 @@ export default async function PedidoDetallePage({
           ))}
           <div>
             <p className="text-xs text-muted-foreground">Facturado</p>
-            <Badge variant={pedido.facturado ? "outline" : "secondary"}>
+            <Badge variant={pedido.facturado ? "success" : "warning"}>
               {pedido.facturado ? "Sí" : "No"}
             </Badge>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Pagado</p>
-            <Badge variant={pedido.pagado ? "outline" : "secondary"}>
+            <Badge variant={pedido.pagado ? "success" : "warning"}>
               {pedido.pagado ? "Sí" : "No"}
             </Badge>
           </div>

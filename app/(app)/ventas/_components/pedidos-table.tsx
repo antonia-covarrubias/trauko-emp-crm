@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatCurrency, formatDate } from "@/lib/format";
+import { estadoPedidoVariant, formatCurrency, formatDate } from "@/lib/format";
 
 export type PedidoListRow = {
   id: string;
@@ -74,7 +74,7 @@ export function PedidosTable({ rows }: PedidosTableProps) {
             className="sm:w-48"
           />
         </div>
-        <Button render={<Link href="/ventas/nuevo" />}>
+        <Button nativeButton={false} render={<Link href="/ventas/nuevo" />}>
           <Plus />
           Nuevo pedido
         </Button>
@@ -109,18 +109,24 @@ export function PedidosTable({ rows }: PedidosTableProps) {
               >
                 <TableCell className="font-medium">{row.cliente_nombre}</TableCell>
                 <TableCell>{row.numero_pedido ?? "—"}</TableCell>
-                <TableCell>{row.estado ?? "—"}</TableCell>
+                <TableCell>
+                  {row.estado ? (
+                    <Badge variant={estadoPedidoVariant(row.estado)}>{row.estado}</Badge>
+                  ) : (
+                    "—"
+                  )}
+                </TableCell>
                 <TableCell>{formatDate(row.fecha_entrega)}</TableCell>
                 <TableCell className="text-right">
                   {formatCurrency(row.ingreso_bruto)}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={row.facturado ? "outline" : "secondary"}>
+                  <Badge variant={row.facturado ? "success" : "warning"}>
                     {row.facturado ? "Sí" : "No"}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={row.pagado ? "outline" : "secondary"}>
+                  <Badge variant={row.pagado ? "success" : "warning"}>
                     {row.pagado ? "Sí" : "No"}
                   </Badge>
                 </TableCell>

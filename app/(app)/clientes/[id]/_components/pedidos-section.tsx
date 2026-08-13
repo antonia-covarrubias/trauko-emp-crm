@@ -30,7 +30,11 @@ export function PedidosSection({ clienteId, pedidos }: PedidosSectionProps) {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Pedidos</CardTitle>
-        <Button size="sm" render={<Link href={`/ventas/nuevo?cliente_id=${clienteId}`} />}>
+        <Button
+          size="sm"
+          nativeButton={false}
+          render={<Link href={`/ventas/nuevo?cliente_id=${clienteId}`} />}
+        >
           <Plus />
           Nuevo pedido para este cliente
         </Button>

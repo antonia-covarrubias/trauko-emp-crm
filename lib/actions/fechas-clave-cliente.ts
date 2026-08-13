@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import {
   fechaClaveClienteSchema,
+  fechaClaveClienteBulkSchema,
   type FechaClaveClienteFormValues,
+  type FechaClaveClienteBulkValues,
 } from "@/lib/validations";
 import { mapSupabaseError } from "./_shared";
 import type { ActionResult } from "@/lib/types";
@@ -73,6 +75,36 @@ export async function updateFechaClaveCliente(
   revalidatePath("/fechas");
   revalidatePath(`/clientes/${parsed.data.cliente_id}`);
   return { success: true, data: undefined };
+}
+
+export async function createFechasClaveClienteBulk(
+  values: FechaClaveClienteBulkValues,
+): Promise<ActionResult<{ count: number }>> {
+  const parsed = fechaClaveClienteBulkSchema.safeParse(values);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Datos inválidos" };
+  }
+
+  const supabase = await createClient();
+  const rows = parsed.data.clienteIds.map((clienteId) => ({
+    cliente_id: clienteId,
+    nombre_fecha: parsed.data.nombre_fecha,
+    mes: parsed.data.mes,
+    dia: parsed.data.dia,
+    fecha_general_id: parsed.data.fecha_general_id,
+    origen: "confirmado_cliente" as const,
+    activo: true,
+  }));
+
+  const { error } = await supabase.from("fechas_clave_cliente").insert(rows);
+
+  if (error) {
+    return { success: false, error: mapSupabaseError(error) };
+  }
+
+  revalidatePath("/fechas");
+  parsed.data.clienteIds.forEach((clienteId) => revalidatePath(`/clientes/${clienteId}`));
+  return { success: true, data: { count: rows.length } };
 }
 
 export async function deleteFechaClaveCliente(

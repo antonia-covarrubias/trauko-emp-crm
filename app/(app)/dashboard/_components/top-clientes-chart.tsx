@@ -11,7 +11,7 @@ import {
 } from "recharts";
 import { formatCurrency } from "@/lib/format";
 
-const BAR_COLOR = "#92400e";
+const BAR_COLOR = "#2a78d6";
 
 type TopClientesChartProps = {
   data: { nombre: string; ingreso: number }[];
