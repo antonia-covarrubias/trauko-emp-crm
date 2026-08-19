@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
+  Calendar,
   Users,
   Building2,
   UserCog,
@@ -14,6 +15,7 @@ import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/calendario", label: "Calendario", icon: Calendar },
   { href: "/clientes", label: "Clientes", icon: Users },
   { href: "/grupos", label: "Grupos", icon: Building2 },
   { href: "/ejecutivos", label: "Ejecutivos", icon: UserCog },
