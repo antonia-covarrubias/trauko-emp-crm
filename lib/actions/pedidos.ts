@@ -41,6 +41,8 @@ export async function createPedido(
     .insert({
       cliente_id: parsed.data.cliente_id,
       ejecutivo_id: parsed.data.ejecutivo_id,
+      artesano_id: parsed.data.artesano_id,
+      fecha_entrega_artesano: parsed.data.fecha_entrega_artesano || null,
       numero_pedido: parsed.data.numero_pedido || null,
       estado: parsed.data.estado || null,
       fecha_entrega: parsed.data.fecha_entrega || null,
@@ -104,6 +106,8 @@ export async function updatePedido(
     .update({
       cliente_id: parsed.data.cliente_id,
       ejecutivo_id: parsed.data.ejecutivo_id,
+      artesano_id: parsed.data.artesano_id,
+      fecha_entrega_artesano: parsed.data.fecha_entrega_artesano || null,
       numero_pedido: parsed.data.numero_pedido || null,
       estado: parsed.data.estado || null,
       fecha_entrega: parsed.data.fecha_entrega || null,

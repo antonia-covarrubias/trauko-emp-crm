@@ -23,6 +23,7 @@ type PedidoDetalle = {
   numero_pedido: string | null;
   estado: string | null;
   fecha_entrega: string | null;
+  fecha_entrega_artesano: string | null;
   nro_oc: string | null;
   fecha_oc: string | null;
   nro_factura: string | null;
@@ -36,6 +37,7 @@ type PedidoDetalle = {
   notas: string | null;
   clientes: { nombre_empresa: string } | null;
   ejecutivos: { nombre: string } | null;
+  artesanos: { nombre: string } | null;
 };
 
 export default async function PedidoDetallePage({
@@ -49,7 +51,7 @@ export default async function PedidoDetallePage({
   const [pedidoRes, itemsRes] = await Promise.all([
     supabase
       .from("pedidos")
-      .select("*, clientes(nombre_empresa), ejecutivos(nombre)")
+      .select("*, clientes(nombre_empresa), ejecutivos(nombre), artesanos(nombre)")
       .eq("id", id)
       .maybeSingle(),
     supabase.from("pedido_items").select("*").eq("pedido_id", id).order("created_at"),
@@ -75,7 +77,12 @@ export default async function PedidoDetallePage({
         "—"
       ),
     },
-    { label: "Fecha entrega", value: formatDate(pedido.fecha_entrega) },
+    { label: "Fecha entrega a cliente", value: formatDate(pedido.fecha_entrega) },
+    { label: "Artesano", value: pedido.artesanos?.nombre ?? "Sin asignar" },
+    {
+      label: "Fecha entrega del artesano",
+      value: formatDate(pedido.fecha_entrega_artesano),
+    },
     { label: "Cómo llegaron", value: pedido.como_llegaron ?? "—" },
     { label: "N° OC", value: pedido.nro_oc ?? "—" },
     { label: "Fecha OC", value: formatDate(pedido.fecha_oc) },

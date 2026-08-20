@@ -8,6 +8,7 @@ import {
   Users,
   Building2,
   UserCog,
+  Hammer,
   ShoppingCart,
   CalendarDays,
 } from "lucide-react";
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
   { href: "/clientes", label: "Clientes", icon: Users },
   { href: "/grupos", label: "Grupos", icon: Building2 },
   { href: "/ejecutivos", label: "Ejecutivos", icon: UserCog },
+  { href: "/artesanos", label: "Artesanos", icon: Hammer },
   { href: "/ventas", label: "Ventas", icon: ShoppingCart },
   { href: "/fechas", label: "Fechas", icon: CalendarDays },
 ];

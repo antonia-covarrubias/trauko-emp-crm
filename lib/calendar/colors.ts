@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 export type CalendarColorKey =
   | "nacional"
   | "comercial"
@@ -51,4 +53,17 @@ export function dotClassName(key: string): string {
 
 export function badgeVariant(key: string) {
   return BADGE_VARIANT[key as CalendarColorKey] ?? "outline";
+}
+
+/** Estilo inline para un punto/franja con un color hex propio (pedidos,
+ * eventos_calendario) en vez de la paleta fija de 5 colores. */
+export function hexDotStyle(hex: string): CSSProperties {
+  return { backgroundColor: hex };
+}
+
+/** Fondo tintado + texto sólido a partir de un color hex, para chips y
+ * badges -- mismo criterio visual que las variantes success/warning/info
+ * (fondo con tinte del color, no gris plano). */
+export function hexBadgeStyle(hex: string): CSSProperties {
+  return { backgroundColor: `${hex}1f`, color: hex };
 }

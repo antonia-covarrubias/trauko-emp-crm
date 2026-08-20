@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { PedidoForm } from "../_components/pedido-form";
-import type { Ejecutivo } from "@/lib/types";
+import type { Artesano, Ejecutivo } from "@/lib/types";
 
 export default async function NuevoPedidoPage({
   searchParams,
@@ -10,13 +10,15 @@ export default async function NuevoPedidoPage({
   const { cliente_id } = await searchParams;
   const supabase = await createClient();
 
-  const [clientesRes, ejecutivosRes] = await Promise.all([
+  const [clientesRes, ejecutivosRes, artesanosRes] = await Promise.all([
     supabase.from("clientes").select("id, nombre_empresa").order("nombre_empresa"),
     supabase.from("ejecutivos").select("*").order("nombre"),
+    supabase.from("artesanos").select("*").order("nombre"),
   ]);
 
   const clientes = (clientesRes.data ?? []) as { id: string; nombre_empresa: string }[];
   const ejecutivos = (ejecutivosRes.data ?? []) as Ejecutivo[];
+  const artesanos = (artesanosRes.data ?? []) as Artesano[];
 
   return (
     <div className="flex flex-col gap-6">
@@ -30,6 +32,7 @@ export default async function NuevoPedidoPage({
       <PedidoForm
         clientes={clientes}
         ejecutivos={ejecutivos}
+        artesanos={artesanos}
         clientePreseleccionadoId={cliente_id}
       />
     </div>

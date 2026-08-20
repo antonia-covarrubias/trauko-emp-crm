@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PedidoForm } from "../../_components/pedido-form";
-import type { Ejecutivo, Pedido, PedidoItem } from "@/lib/types";
+import type { Artesano, Ejecutivo, Pedido, PedidoItem } from "@/lib/types";
 
 export default async function EditarPedidoPage({
   params,
@@ -11,11 +11,12 @@ export default async function EditarPedidoPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [pedidoRes, itemsRes, clientesRes, ejecutivosRes] = await Promise.all([
+  const [pedidoRes, itemsRes, clientesRes, ejecutivosRes, artesanosRes] = await Promise.all([
     supabase.from("pedidos").select("*").eq("id", id).maybeSingle(),
     supabase.from("pedido_items").select("*").eq("pedido_id", id).order("created_at"),
     supabase.from("clientes").select("id, nombre_empresa").order("nombre_empresa"),
     supabase.from("ejecutivos").select("*").order("nombre"),
+    supabase.from("artesanos").select("*").order("nombre"),
   ]);
 
   const pedido = pedidoRes.data as Pedido | null;
@@ -27,6 +28,7 @@ export default async function EditarPedidoPage({
   const items = (itemsRes.data ?? []) as PedidoItem[];
   const clientes = (clientesRes.data ?? []) as { id: string; nombre_empresa: string }[];
   const ejecutivos = (ejecutivosRes.data ?? []) as Ejecutivo[];
+  const artesanos = (artesanosRes.data ?? []) as Artesano[];
 
   return (
     <div className="flex flex-col gap-6">
@@ -42,6 +44,7 @@ export default async function EditarPedidoPage({
       <PedidoForm
         clientes={clientes}
         ejecutivos={ejecutivos}
+        artesanos={artesanos}
         pedido={pedido}
         items={items}
       />

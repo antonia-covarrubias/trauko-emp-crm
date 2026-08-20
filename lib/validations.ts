@@ -74,6 +74,19 @@ export const ejecutivoSchema = z.object({
 });
 export type EjecutivoFormValues = z.infer<typeof ejecutivoSchema>;
 
+// --- Artesano ------------------------------------------------------------
+
+export const artesanoSchema = z.object({
+  nombre: z.string().trim().min(1, "El nombre es obligatorio"),
+  especialidad: optionalText,
+  contacto: optionalText,
+  telefono: optionalText,
+  email: z.union([z.literal(""), z.string().trim().email("Email inválido")]).optional(),
+  notas: optionalText,
+  activo: z.boolean(),
+});
+export type ArtesanoFormValues = z.infer<typeof artesanoSchema>;
+
 // --- Pedido ------------------------------------------------------------
 
 export const pedidoItemSchema = z.object({
@@ -92,6 +105,8 @@ export type PedidoItemFormValues = z.infer<typeof pedidoItemSchema>;
 export const pedidoSchema = z.object({
   cliente_id: z.string().uuid("Selecciona un cliente"),
   ejecutivo_id: z.string().uuid().nullable(),
+  artesano_id: z.string().uuid().nullable(),
+  fecha_entrega_artesano: optionalText,
   numero_pedido: optionalText,
   estado: optionalText,
   fecha_entrega: optionalText,
@@ -148,3 +163,17 @@ export const fechaClaveClienteBulkSchema = z.object({
   clienteIds: z.array(z.string().uuid()).min(1, "Selecciona al menos un cliente"),
 });
 export type FechaClaveClienteBulkValues = z.infer<typeof fechaClaveClienteBulkSchema>;
+
+// --- Evento de calendario --------------------------------------------------
+
+export const eventoCalendarioSchema = z.object({
+  tipo_evento_id: z.string().uuid("Selecciona un tipo de evento"),
+  titulo: z.string().trim().min(1, "El título es obligatorio"),
+  descripcion: optionalText,
+  fecha: z.string().trim().min(1, "La fecha es obligatoria"),
+  fecha_fin: optionalText,
+  cliente_id: z.string().uuid().nullable(),
+  pedido_id: z.string().uuid().nullable(),
+  activo: z.boolean(),
+});
+export type EventoCalendarioFormValues = z.infer<typeof eventoCalendarioSchema>;

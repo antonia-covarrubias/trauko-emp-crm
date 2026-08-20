@@ -1,22 +1,33 @@
 import Link from "next/link";
+import { Pencil, Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { badgeVariant } from "@/lib/calendar/colors";
+import { Button } from "@/components/ui/button";
+import { badgeVariant, hexBadgeStyle } from "@/lib/calendar/colors";
 import type { CalendarEvent } from "@/lib/calendar/types";
 
 type DiaDetalleDialogProps = {
   fecha: Date | null;
   eventos: CalendarEvent[];
   onOpenChange: (open: boolean) => void;
+  onEditEventoCalendario: (evento: CalendarEvent) => void;
+  onNuevoEvento: () => void;
 };
 
-export function DiaDetalleDialog({ fecha, eventos, onOpenChange }: DiaDetalleDialogProps) {
+export function DiaDetalleDialog({
+  fecha,
+  eventos,
+  onOpenChange,
+  onEditEventoCalendario,
+  onNuevoEvento,
+}: DiaDetalleDialogProps) {
   return (
     <Dialog open={fecha !== null} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -41,15 +52,38 @@ export function DiaDetalleDialog({ fecha, eventos, onOpenChange }: DiaDetalleDia
         <div className="flex flex-col gap-4">
           {eventos.map((ev) => (
             <div key={ev.id} className="flex flex-col gap-2 rounded-md border p-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-medium">{ev.nombre}</span>
-                <Badge variant={badgeVariant(ev.colorKey)}>
-                  {ev.esPeriodo
-                    ? "Período"
-                    : ev.tipo === "fecha_general"
-                      ? (ev.categoria ?? "General")
-                      : "Cliente"}
-                </Badge>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-medium">{ev.nombre}</span>
+                  {ev.colorHex ? (
+                    <span
+                      className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                      style={hexBadgeStyle(ev.colorHex)}
+                    >
+                      {ev.categoria ?? "Evento"}
+                    </span>
+                  ) : (
+                    <Badge variant={badgeVariant(ev.colorKey)}>
+                      {ev.esPeriodo
+                        ? "Período"
+                        : ev.tipo === "fecha_general"
+                          ? (ev.categoria ?? "General")
+                          : "Cliente"}
+                    </Badge>
+                  )}
+                </div>
+
+                {ev.tipo === "evento_calendario" && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label="Editar evento"
+                    onClick={() => onEditEventoCalendario(ev)}
+                  >
+                    <Pencil />
+                  </Button>
+                )}
               </div>
 
               {ev.esPeriodo && ev.fechaFin && (
@@ -71,9 +105,22 @@ export function DiaDetalleDialog({ fecha, eventos, onOpenChange }: DiaDetalleDia
                   ))}
                 </div>
               )}
+
+              {ev.linkHref && (
+                <Link href={ev.linkHref} className="text-xs text-primary hover:underline">
+                  {ev.linkLabel || "Ver detalle"} →
+                </Link>
+              )}
             </div>
           ))}
         </div>
+
+        <DialogFooter className="sm:justify-start">
+          <Button type="button" variant="outline" size="sm" onClick={onNuevoEvento}>
+            <Plus />
+            Agregar evento este día
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

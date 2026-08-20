@@ -38,6 +38,39 @@ export type Ejecutivo = {
   created_at: string;
 };
 
+export type Artesano = {
+  id: string;
+  nombre: string;
+  especialidad: string | null;
+  contacto: string | null;
+  telefono: string | null;
+  email: string | null;
+  notas: string | null;
+  activo: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TipoEvento = {
+  id: string;
+  nombre: string;
+  color: string;
+};
+
+export type EventoCalendario = {
+  id: string;
+  tipo_evento_id: string;
+  cliente_id: string | null;
+  pedido_id: string | null;
+  titulo: string;
+  descripcion: string | null;
+  fecha: string;
+  fecha_fin: string | null;
+  activo: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 export type EstadoPedido =
   | "LISTO"
   | "EN PRODUCCIÓN"
@@ -49,6 +82,8 @@ export type Pedido = {
   id: string;
   cliente_id: string;
   ejecutivo_id: string | null;
+  artesano_id: string | null;
+  fecha_entrega_artesano: string | null;
   numero_pedido: string | null;
   estado: string | null;
   fecha_entrega: string | null;

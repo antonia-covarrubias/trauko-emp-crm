@@ -38,7 +38,7 @@ import { Combobox, CreatableCombobox } from "@/components/domain/combobox";
 import { pedidoSchema, type PedidoFormValues } from "@/lib/validations";
 import { createPedido, updatePedido } from "@/lib/actions/pedidos";
 import { formatCurrency } from "@/lib/format";
-import type { Ejecutivo, Pedido, PedidoItem } from "@/lib/types";
+import type { Artesano, Ejecutivo, Pedido, PedidoItem } from "@/lib/types";
 
 const ESTADO_OPTIONS = [
   { value: "LISTO", label: "LISTO" },
@@ -67,6 +67,8 @@ function toValues(
   return {
     cliente_id: pedido?.cliente_id ?? clienteId ?? "",
     ejecutivo_id: pedido?.ejecutivo_id ?? null,
+    artesano_id: pedido?.artesano_id ?? null,
+    fecha_entrega_artesano: pedido?.fecha_entrega_artesano ?? "",
     numero_pedido: pedido?.numero_pedido ?? "",
     estado: pedido?.estado ?? "",
     fecha_entrega: pedido?.fecha_entrega ?? "",
@@ -98,6 +100,7 @@ function toValues(
 type PedidoFormProps = {
   clientes: { id: string; nombre_empresa: string }[];
   ejecutivos: Ejecutivo[];
+  artesanos: Artesano[];
   clientePreseleccionadoId?: string;
   pedido?: Pedido;
   items?: PedidoItem[];
@@ -106,6 +109,7 @@ type PedidoFormProps = {
 export function PedidoForm({
   clientes,
   ejecutivos,
+  artesanos,
   clientePreseleccionadoId,
   pedido,
   items,
@@ -160,6 +164,9 @@ export function PedidoForm({
   const ejecutivoActivos = ejecutivos.filter(
     (e) => e.activo || e.id === pedido?.ejecutivo_id,
   );
+  const artesanoActivos = artesanos.filter(
+    (a) => a.activo || a.id === pedido?.artesano_id,
+  );
 
   return (
     <Form {...form}>
@@ -200,7 +207,13 @@ export function PedidoForm({
                   >
                     <FormControl>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sin asignar" />
+                        <SelectValue placeholder="Sin asignar">
+                          {(value: string) =>
+                            value && value !== "none"
+                              ? (ejecutivoActivos.find((e) => e.id === value)?.nombre ?? value)
+                              : "Sin asignar"
+                          }
+                        </SelectValue>
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -209,6 +222,42 @@ export function PedidoForm({
                         <SelectItem key={e.id} value={e.id}>
                           {e.nombre}
                           {!e.activo ? " (inactivo)" : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="artesano_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Artesano</FormLabel>
+                  <Select
+                    value={field.value ?? "none"}
+                    onValueChange={(v) => field.onChange(v === "none" ? null : v)}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sin asignar">
+                          {(value: string) =>
+                            value && value !== "none"
+                              ? (artesanoActivos.find((a) => a.id === value)?.nombre ?? value)
+                              : "Sin asignar"
+                          }
+                        </SelectValue>
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">Sin asignar</SelectItem>
+                      {artesanoActivos.map((a) => (
+                        <SelectItem key={a.id} value={a.id}>
+                          {a.nombre}
+                          {!a.activo ? " (inactivo)" : ""}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -256,10 +305,27 @@ export function PedidoForm({
               name="fecha_entrega"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Fecha entrega</FormLabel>
+                  <FormLabel>Fecha entrega a cliente</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="fecha_entrega_artesano"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Fecha entrega del artesano</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    Cuándo te entrega el artesano a ti (no al cliente).
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}
